@@ -66,7 +66,7 @@ public class ProdutoController {
 
     // POST /remover/{id} -> remove o produto pelo identificador
     @PostMapping("/remover/{id}")
-    public String removerProduto(@PathVariable String id) {
+    public String removerProduto(@PathVariable Long id) {
         produtoService.remover(id);
         return "redirect:/lista";
     }

@@ -2,30 +2,42 @@
 
 Aplicacao web de cadastro de produtos feita com **Spring Boot** e **Thymeleaf**, como exercicio da aula *Cadastro de Produtos com Thymeleaf*.
 
-O usuario preenche um formulario (nome, preco e categoria), o servidor guarda o produto numa lista em memoria e uma segunda pagina mostra todos os produtos em uma tabela.
+O usuario cadastra produtos num formulario, os dados sao gravados num banco **H2 embarcado** (via Spring Data JPA) e uma segunda pagina mostra os produtos numa tabela, com busca e remocao.
 
 ## Tecnologias
 
 - Java 17
-- Spring Boot 3.5.7 (Spring Web e Thymeleaf)
+- Spring Boot 3.5.7 (Spring Web, Thymeleaf e Spring Data JPA)
+- Banco H2 em memoria
 - Maven
 - Bootstrap 4.6.2 (via CDN)
-
-Nao ha banco de dados: os produtos ficam numa lista estatica e somem quando o servidor reinicia.
 
 ## Estrutura
 
 ```
 src/main/java/com/example/mercadinhothymeleaf/
   MercadinhoThymeleafApplication.java   ponto de entrada
-  model/Produto.java                    dados do produto
+  model/Produto.java                    entidade JPA (tabela produtos)
+  repository/ProdutoRepository.java     acesso ao banco (Spring Data JPA)
+  service/ProdutoService.java           regras de negocio
   controller/ProdutoController.java     rotas e fluxo
-src/main/resources/templates/
-  cadastrar.html                        formulario
-  lista.html                            tabela de produtos
+src/main/resources/
+  templates/cadastrar.html              formulario
+  templates/lista.html                  tabela, busca e remocao
+  static/css/estilo.css                 estilo proprio
+  application.properties                configuracao
 ```
 
-O projeto segue o padrao **MVC**: o Model guarda os dados, a View (Thymeleaf) mostra a pagina e o Controller decide o fluxo.
+O projeto segue o padrao **MVC** em camadas: o Controller recebe a requisicao, o Service aplica as regras, o Repository fala com o banco e a View (Thymeleaf) monta a pagina.
+
+## Campos do produto
+
+| Campo | Regra |
+|---|---|
+| nome | obrigatorio |
+| preco | obrigatorio e nao pode ser negativo (`BigDecimal`) |
+| categoria | escolhida numa lista fixa: Eletronico, Vestuario, Alimento, Outros |
+| estoque | numero inteiro, minimo 0 |
 
 ## Rotas
 
@@ -33,10 +45,12 @@ O projeto segue o padrao **MVC**: o Model guarda os dados, a View (Thymeleaf) mo
 |---|---|---|
 | GET | `/` | Redireciona para `/cadastrar` |
 | GET | `/cadastrar` | Mostra o formulario |
-| POST | `/cadastrar` | Salva o produto e redireciona para `/lista` |
+| POST | `/cadastrar` | Valida e salva o produto; se o preco for negativo, volta ao formulario com erro |
 | GET | `/lista` | Mostra a tabela de produtos |
+| GET | `/lista?busca=termo` | Filtra por nome ou categoria, sem diferenciar maiusculas |
+| POST | `/remover/{id}` | Remove o produto pelo id |
 
-Apos o POST, o servidor redireciona (padrao Post/Redirect/Get), o que evita duplicar o cadastro ao recarregar a pagina.
+Apos um POST bem-sucedido o servidor redireciona (padrao Post/Redirect/Get), o que evita duplicar o cadastro ao recarregar a pagina.
 
 ## Como rodar
 
@@ -52,19 +66,40 @@ Aguarde a mensagem `Started MercadinhoThymeleafApplication` e acesse http://loca
 
 Se a porta 8080 estiver ocupada, adicione `server.port=8081` em `src/main/resources/application.properties`.
 
+### Rodando no GitHub Codespaces
+
+O Codespaces expoe a porta 8080 atras de um proxy. As duas linhas `server.forward-headers-strategy` e `server.tomcat.use-relative-redirects` do `application.properties` fazem os redirecionamentos funcionarem la.
+
 ## Roteiro de teste
 
-1. Abra `http://localhost:8080`: deve redirecionar para `/cadastrar`.
-2. Cadastre Nome `Camiseta`, Preco `49.90`, Categoria `Vestuario`.
-3. Voce cai em `/lista` com o produto na tabela e a contagem de produtos.
-4. Cadastre outro produto e confira os dois na tabela.
-5. Reinicie o servidor e abra `/lista`: aparece "Nenhum produto cadastrado ainda."
+1. Abra `/`: deve redirecionar para `/cadastrar`.
+2. Cadastre `Camiseta` (Vestuario), `Notebook` (Eletronico) e `Arroz` (Alimento).
+3. Em `/lista`, busque `note`: so o Notebook aparece. Busque `vest`: so a Camiseta aparece.
+4. Cadastre um produto com preco `-5`: o produto nao e salvo e aparece uma mensagem de erro.
+5. Remova um produto e confira que os outros continuam na lista.
+6. Reinicie o servidor e abra `/lista`: aparece "Nenhum produto cadastrado ainda." (o H2 esta em memoria).
 
-## Diretivas Thymeleaf usadas
+## Banco H2
 
-`th:action`, `th:object`, `th:field`, `th:text`, `th:each`, `th:if`, `th:unless` e `@{/rota}`.
+O H2 roda dentro da aplicacao, em memoria (`jdbc:h2:mem:mercadinho`), e a tabela e criada sozinha a partir da entidade. Os dados somem quando o servidor reinicia.
+
+Para ver os dados, abra http://localhost:8080/h2-console com:
+
+- JDBC URL: `jdbc:h2:mem:mercadinho`
+- User: `sa`
+- Password: em branco
+
+O console e so para estudo e deve ser desativado (`spring.h2.console.enabled=false`) em qualquer ambiente real.
+
+Para guardar os dados em arquivo, troque a URL por `jdbc:h2:file:./dados/mercadinho` e o `ddl-auto` por `update`.
+
+## Exercicios da aula concluidos
+
+- **Nivel 1:** campo estoque, CSS proprio e total de produtos.
+- **Nivel 2:** dropdown de categoria, validacao de preco negativo e botao Remover.
+- **Nivel 3:** `ProdutoService`, busca por nome ou categoria e Spring Data JPA com H2.
 
 ## Decisoes
 
 - O preco usa `BigDecimal` em vez de `double`, para evitar erros de arredondamento com dinheiro.
-- A lista em memoria e uma simplificacao didatica; os exercicios avancados da aula a substituem por um `@Service` e depois por um banco H2.
+- A remocao usa o `id` do banco, e nao a posicao na lista, para nao apagar o produto errado quando a lista esta filtrada.
