@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -55,17 +56,18 @@ public class ProdutoController {
         return "redirect:/lista";
     }
 
-    // GET /lista -> exibe todos os produtos cadastrados
+    // GET /lista?busca=... -> lista todos ou apenas os que combinam com a busca
     @GetMapping("/lista")
-    public String exibirLista(Model model) {
-        model.addAttribute("produtos", produtoService.listar());
+    public String exibirLista(@RequestParam(required = false) String busca, Model model) {
+        model.addAttribute("produtos", produtoService.listar(busca));
+        model.addAttribute("busca", busca);
         return "lista";
     }
 
-    // POST /remover/{indice} -> remove o produto da posicao indicada
-    @PostMapping("/remover/{indice}")
-    public String removerProduto(@PathVariable int indice) {
-        produtoService.remover(indice);
+    // POST /remover/{id} -> remove o produto pelo identificador
+    @PostMapping("/remover/{id}")
+    public String removerProduto(@PathVariable String id) {
+        produtoService.remover(id);
         return "redirect:/lista";
     }
 }

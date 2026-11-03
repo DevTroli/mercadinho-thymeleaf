@@ -1,9 +1,12 @@
 package com.example.mercadinhothymeleaf.model;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public class Produto {
 
+    // Identificador unico, gerado na criacao. Sem setter: o formulario nao consegue alterar.
+    private final String id = UUID.randomUUID().toString();
     private String nome;
     private BigDecimal preco;
     private String categoria;
@@ -11,6 +14,10 @@ public class Produto {
 
     // Construtor vazio: obrigatorio para o Spring preencher o objeto a partir do formulario
     public Produto() {
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getNome() {

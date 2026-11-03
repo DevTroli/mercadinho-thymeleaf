@@ -16,9 +16,19 @@
 
     <div class="card">
         <div class="card-body">
+            <!-- Busca por nome ou categoria: GET /lista?busca=... -->
+            <form class="form-inline mb-3" th:action="@{/lista}" method="get">
+                <input class="form-control mr-2" type="text" name="busca" th:value="${busca}"
+                       placeholder="Buscar por nome ou categoria" />
+                <button class="btn btn-primary mr-2" type="submit">Buscar</button>
+                <a th:href="@{/lista}" class="btn btn-secondary" th:if="${busca != null and !#strings.isEmpty(busca)}">Limpar</a>
+            </form>
+
             <!-- th:if -> exibe o bloco somente se a lista estiver vazia -->
             <div class="alert alert-info" role="alert" th:if="${#lists.isEmpty(produtos)}">
-                Nenhum produto cadastrado ainda.
+                <span th:if="${busca != null and !#strings.isEmpty(busca)}"
+                      th:text="'Nenhum produto encontrado para \"' + ${busca} + '\".'"></span>
+                <span th:unless="${busca != null and !#strings.isEmpty(busca)}">Nenhum produto cadastrado ainda.</span>
             </div>
 
             <!-- th:unless -> exibe a tabela somente quando ha produtos -->
@@ -42,8 +52,8 @@
                     <td th:text="${produto.categoria}">Categoria</td>
                     <td th:text="${produto.estoque}">0</td>
                     <td>
-                        <!-- POST /remover/{indice}: iterStat.index comeca em 0 -->
-                        <form th:action="@{/remover/{indice}(indice=${iterStat.index})}" method="post"
+                        <!-- POST /remover/{id}: remove pelo identificador do produto -->
+                        <form th:action="@{/remover/{id}(id=${produto.id})}" method="post"
                               class="form-remover"
                               onsubmit="return confirm('Remover este produto?');">
                             <button type="submit" class="btn btn-sm btn-danger">Remover</button>
@@ -54,7 +64,7 @@
             </table>
 
             <p class="text-muted" th:unless="${#lists.isEmpty(produtos)}"
-               th:text="${produtos.size()} + ' produto(s) cadastrado(s)'"></p>
+               th:text="${produtos.size()} + ' produto(s) encontrado(s)'"></p>
 
             <a th:href="@{/cadastrar}" class="btn btn-primary">+ Cadastrar novo produto</a>
         </div>
