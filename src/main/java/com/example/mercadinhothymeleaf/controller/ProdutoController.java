@@ -1,6 +1,7 @@
 package com.example.mercadinhothymeleaf.controller;
 
 import com.example.mercadinhothymeleaf.model.Produto;
+import com.example.mercadinhothymeleaf.service.ProdutoService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,18 +9,20 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 @Controller
 public class ProdutoController {
 
-    // Lista estatica: existe enquanto a aplicacao estiver rodando
-    private static final List<Produto> produtos = new ArrayList<>();
-
     private static final List<String> CATEGORIAS =
             List.of("Eletrônico", "Vestuário", "Alimento", "Outros");
+
+    private final ProdutoService produtoService;
+
+    // Injecao por construtor: o Spring entrega o ProdutoService pronto
+    public ProdutoController(ProdutoService produtoService) {
+        this.produtoService = produtoService;
+    }
 
     // Disponibiliza as categorias para todas as views deste controller
     @ModelAttribute("categorias")
@@ -40,31 +43,29 @@ public class ProdutoController {
         return "cadastrar";
     }
 
-    // POST /cadastrar -> valida, salva e redireciona (padrao PRG)
+    // POST /cadastrar -> delega ao service e redireciona (padrao PRG)
     @PostMapping("/cadastrar")
     public String cadastrarProduto(@ModelAttribute Produto produto, Model model) {
-        BigDecimal preco = produto.getPreco();
-        if (preco == null || preco.compareTo(BigDecimal.ZERO) < 0) {
-            model.addAttribute("erro", "O preço não pode ser negativo. O produto não foi cadastrado.");
+        try {
+            produtoService.adicionar(produto);
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("erro", e.getMessage());
             return "cadastrar";
         }
-        produtos.add(produto);
         return "redirect:/lista";
     }
 
     // GET /lista -> exibe todos os produtos cadastrados
     @GetMapping("/lista")
     public String exibirLista(Model model) {
-        model.addAttribute("produtos", produtos);
+        model.addAttribute("produtos", produtoService.listar());
         return "lista";
     }
 
     // POST /remover/{indice} -> remove o produto da posicao indicada
     @PostMapping("/remover/{indice}")
     public String removerProduto(@PathVariable int indice) {
-        if (indice >= 0 && indice < produtos.size()) {
-            produtos.remove(indice);
-        }
+        produtoService.remover(indice);
         return "redirect:/lista";
     }
 }
