@@ -27,7 +27,7 @@
             <!-- th:if -> exibe o bloco somente se a lista estiver vazia -->
             <div class="alert alert-info" role="alert" th:if="${#lists.isEmpty(produtos)}">
                 <span th:if="${busca != null and !#strings.isEmpty(busca)}"
-                      th:text="'Nenhum produto encontrado para \"' + ${busca} + '\".'"></span>
+                      th:text="'Nenhum produto encontrado para: ' + ${busca}"></span>
                 <span th:unless="${busca != null and !#strings.isEmpty(busca)}">Nenhum produto cadastrado ainda.</span>
             </div>
 
