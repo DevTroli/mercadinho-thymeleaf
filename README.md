@@ -30,15 +30,6 @@ src/main/resources/
 
 O projeto segue o padrao **MVC** em camadas: o Controller recebe a requisicao, o Service aplica as regras, o Repository fala com o banco e a View (Thymeleaf) monta a pagina.
 
-## Campos do produto
-
-| Campo | Regra |
-|---|---|
-| nome | obrigatorio |
-| preco | obrigatorio e nao pode ser negativo (`BigDecimal`) |
-| categoria | escolhida numa lista fixa: Eletronico, Vestuario, Alimento, Outros |
-| estoque | numero inteiro, minimo 0 |
-
 ## Rotas
 
 | Metodo | Rota | O que faz |
@@ -66,10 +57,6 @@ Aguarde a mensagem `Started MercadinhoThymeleafApplication` e acesse http://loca
 
 Se a porta 8080 estiver ocupada, adicione `server.port=8081` em `src/main/resources/application.properties`.
 
-### Rodando no GitHub Codespaces
-
-O Codespaces expoe a porta 8080 atras de um proxy. As duas linhas `server.forward-headers-strategy` e `server.tomcat.use-relative-redirects` do `application.properties` fazem os redirecionamentos funcionarem la.
-
 ## Roteiro de teste
 
 1. Abra `/`: deve redirecionar para `/cadastrar`.
@@ -78,28 +65,3 @@ O Codespaces expoe a porta 8080 atras de um proxy. As duas linhas `server.forwar
 4. Cadastre um produto com preco `-5`: o produto nao e salvo e aparece uma mensagem de erro.
 5. Remova um produto e confira que os outros continuam na lista.
 6. Reinicie o servidor e abra `/lista`: aparece "Nenhum produto cadastrado ainda." (o H2 esta em memoria).
-
-## Banco H2
-
-O H2 roda dentro da aplicacao, em memoria (`jdbc:h2:mem:mercadinho`), e a tabela e criada sozinha a partir da entidade. Os dados somem quando o servidor reinicia.
-
-Para ver os dados, abra http://localhost:8080/h2-console com:
-
-- JDBC URL: `jdbc:h2:mem:mercadinho`
-- User: `sa`
-- Password: em branco
-
-O console e so para estudo e deve ser desativado (`spring.h2.console.enabled=false`) em qualquer ambiente real.
-
-Para guardar os dados em arquivo, troque a URL por `jdbc:h2:file:./dados/mercadinho` e o `ddl-auto` por `update`.
-
-## Exercicios da aula concluidos
-
-- **Nivel 1:** campo estoque, CSS proprio e total de produtos.
-- **Nivel 2:** dropdown de categoria, validacao de preco negativo e botao Remover.
-- **Nivel 3:** `ProdutoService`, busca por nome ou categoria e Spring Data JPA com H2.
-
-## Decisoes
-
-- O preco usa `BigDecimal` em vez de `double`, para evitar erros de arredondamento com dinheiro.
-- A remocao usa o `id` do banco, e nao a posicao na lista, para nao apagar o produto errado quando a lista esta filtrada.
