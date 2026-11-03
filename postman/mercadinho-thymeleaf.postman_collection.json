@@ -1,0 +1,363 @@
+{
+  "info": {
+    "name": "Mercadinho Thymeleaf",
+    "description": "Fluxo completo: cadastro, validacao, busca e remocao. Requer a aplicacao rodando. Defina baseUrl sem barra no final.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "produtoId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Raiz redireciona para /cadastrar",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 302', () => pm.response.to.have.status(302));",
+              "pm.test('Location aponta para /cadastrar', () => pm.expect(pm.response.headers.get('Location')).to.include('/cadastrar'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": []
+        }
+      },
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      }
+    },
+    {
+      "name": "2. Formulario de cadastro",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Mostra o formulario', () => pm.expect(pm.response.text()).to.include('Cadastrar Produto'));",
+              "pm.test('Categoria e um dropdown', () => pm.expect(pm.response.text()).to.include('<select'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/cadastrar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "cadastrar"
+          ]
+        }
+      },
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      }
+    },
+    {
+      "name": "3. Cadastrar produto valido",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 302 (redirect apos salvar)', () => pm.response.to.have.status(302));",
+              "pm.test('Location aponta para /lista', () => pm.expect(pm.response.headers.get('Location')).to.include('/lista'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/cadastrar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "cadastrar"
+          ]
+        },
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "nome",
+              "value": "Camiseta Postman"
+            },
+            {
+              "key": "preco",
+              "value": "49.90"
+            },
+            {
+              "key": "categoria",
+              "value": "Vestuário"
+            },
+            {
+              "key": "estoque",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      }
+    },
+    {
+      "name": "4. Preco negativo nao cadastra",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200 (volta ao formulario)', () => pm.response.to.have.status(200));",
+              "pm.test('Mostra a mensagem de erro', () => pm.expect(pm.response.text()).to.include('negativo'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/cadastrar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "cadastrar"
+          ]
+        },
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "nome",
+              "value": "Produto Invalido"
+            },
+            {
+              "key": "preco",
+              "value": "-5"
+            },
+            {
+              "key": "categoria",
+              "value": "Outros"
+            },
+            {
+              "key": "estoque",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      }
+    },
+    {
+      "name": "5. Listar produtos e guardar o id",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const html = pm.response.text();",
+              "pm.test('Lista contem o produto cadastrado', () => pm.expect(html).to.include('Camiseta Postman'));",
+              "pm.test('Produto invalido nao foi salvo', () => pm.expect(html).to.not.include('Produto Invalido'));",
+              "const m = html.match(/Camiseta Postman[\\s\\S]*?\\/remover\\/(\\d+)/);",
+              "pm.test('Encontrou o id do produto', () => pm.expect(m).to.not.equal(null));",
+              "if (m) { pm.collectionVariables.set('produtoId', m[1]); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/lista",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "lista"
+          ]
+        }
+      },
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      }
+    },
+    {
+      "name": "6. Buscar por nome (sem diferenciar maiusculas)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Achou o produto', () => pm.expect(pm.response.text()).to.include('Camiseta Postman'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/lista?busca=camiseta postman",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "lista"
+          ],
+          "query": [
+            {
+              "key": "busca",
+              "value": "camiseta postman"
+            }
+          ]
+        }
+      },
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      }
+    },
+    {
+      "name": "7. Busca sem resultado",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Mostra mensagem de busca vazia', () => pm.expect(pm.response.text()).to.include('Nenhum produto encontrado para: xyzinexistente'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/lista?busca=xyzinexistente",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "lista"
+          ],
+          "query": [
+            {
+              "key": "busca",
+              "value": "xyzinexistente"
+            }
+          ]
+        }
+      },
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      }
+    },
+    {
+      "name": "8. Remover produto",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 302', () => pm.response.to.have.status(302));",
+              "pm.test('Location aponta para /lista', () => pm.expect(pm.response.headers.get('Location')).to.include('/lista'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/remover/{{produtoId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "remover",
+            "{{produtoId}}"
+          ]
+        }
+      },
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      }
+    },
+    {
+      "name": "9. Produto removido nao aparece mais",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Nao encontra mais o produto', () => pm.expect(pm.response.text()).to.include('Nenhum produto encontrado'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/lista?busca=camiseta postman",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "lista"
+          ],
+          "query": [
+            {
+              "key": "busca",
+              "value": "camiseta postman"
+            }
+          ]
+        }
+      },
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      }
+    }
+  ]
+}
