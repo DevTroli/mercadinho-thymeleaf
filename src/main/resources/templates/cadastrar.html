@@ -14,10 +14,11 @@
 <div class="container mt-5">
     <h1 class="mb-4">Cadastrar Produto</h1>
 
-    <!--
-        th:action -> endpoint do formulario (POST /cadastrar)
-        th:object -> vincula o formulario ao objeto Produto do model
-    -->
+    <!-- Mensagem de erro enviada pelo controller (validacao do preco) -->
+    <div class="alert alert-danger" role="alert" th:if="${erro}" th:text="${erro}">
+        Erro
+    </div>
+
     <form th:action="@{/cadastrar}" th:object="${produto}" method="post">
         <div class="form-group">
             <label for="nome">Nome</label>
@@ -27,12 +28,15 @@
         <div class="form-group">
             <label for="preco">Preço (R$)</label>
             <input class="form-control" type="number" th:field="*{preco}"
-                   step="0.01" min="0" placeholder="Ex: 49.90" required />
+                   step="0.01" placeholder="Ex: 49.90" required />
         </div>
         <div class="form-group">
             <label for="categoria">Categoria</label>
-            <input class="form-control" type="text" th:field="*{categoria}"
-                   placeholder="Ex: Eletrônico, Vestuário..." required />
+            <!-- th:each gera uma <option> para cada categoria da lista fixa -->
+            <select class="form-control" th:field="*{categoria}" required>
+                <option value="">Selecione...</option>
+                <option th:each="cat : ${categorias}" th:value="${cat}" th:text="${cat}">Categoria</option>
+            </select>
         </div>
         <div class="form-group">
             <label for="estoque">Estoque (unidades)</label>
