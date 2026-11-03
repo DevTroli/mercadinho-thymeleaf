@@ -30,6 +30,7 @@
                     <th>Preço</th>
                     <th>Categoria</th>
                     <th>Estoque</th>
+                    <th>Ações</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -40,6 +41,14 @@
                     <td th:text="'R$ ' + ${#numbers.formatDecimal(produto.preco, 1, 2)}">0,00</td>
                     <td th:text="${produto.categoria}">Categoria</td>
                     <td th:text="${produto.estoque}">0</td>
+                    <td>
+                        <!-- POST /remover/{indice}: iterStat.index comeca em 0 -->
+                        <form th:action="@{/remover/{indice}(indice=${iterStat.index})}" method="post"
+                              class="form-remover"
+                              onsubmit="return confirm('Remover este produto?');">
+                            <button type="submit" class="btn btn-sm btn-danger">Remover</button>
+                        </form>
+                    </td>
                 </tr>
                 </tbody>
             </table>
