@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+          integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N"
+          crossorigin="anonymous">
+    <title>Lista de Produtos</title>
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="mb-4">Lista de Produtos</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <!-- th:if -> exibe o bloco somente se a lista estiver vazia -->
+            <div class="alert alert-info" role="alert" th:if="${#lists.isEmpty(produtos)}">
+                Nenhum produto cadastrado ainda.
+            </div>
+
+            <!-- th:unless -> exibe a tabela somente quando ha produtos -->
+            <table class="table table-striped" th:unless="${#lists.isEmpty(produtos)}">
+                <thead class="thead-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Nome</th>
+                    <th>Preço</th>
+                    <th>Categoria</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- th:each -> uma linha para cada produto; iterStat traz o indice -->
+                <tr th:each="produto, iterStat : ${produtos}">
+                    <td th:text="${iterStat.count}">1</td>
+                    <td th:text="${produto.nome}">Nome</td>
+                    <td th:text="'R$ ' + ${#numbers.formatDecimal(produto.preco, 1, 2)}">0,00</td>
+                    <td th:text="${produto.categoria}">Categoria</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <p class="text-muted" th:unless="${#lists.isEmpty(produtos)}"
+               th:text="${produtos.size()} + ' produto(s) cadastrado(s)'"></p>
+
+            <a th:href="@{/cadastrar}" class="btn btn-primary">+ Cadastrar novo produto</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
