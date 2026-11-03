@@ -7,6 +7,7 @@ public class Produto {
     private String nome;
     private BigDecimal preco;
     private String categoria;
+    private int estoque;
 
     // Construtor vazio: obrigatorio para o Spring preencher o objeto a partir do formulario
     public Produto() {
@@ -34,5 +35,13 @@ public class Produto {
 
     public void setCategoria(String categoria) {
         this.categoria = categoria;
+    }
+
+    public int getEstoque() {
+        return estoque;
+    }
+
+    public void setEstoque(int estoque) {
+        this.estoque = estoque;
     }
 }
